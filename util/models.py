@@ -29,22 +29,21 @@ class DeepNeuralNetwork(nn.Module):
         return x
 
 # Training loop
-def train_model(model, dataloader, num_epochs=10, learning_rate=0.001):
+def train(model, dataloader, criterion=nn.BCELoss(), n_epochs=10, lr=0.01, verbose=False):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
 
-    criterion = nn.BCELoss()
-    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
-    for epoch in range(num_epochs):
+    for epoch in range(1, n_epochs+1):
+        optimizer = optim.Adam(model.parameters(), lr=lr*epoch)
         model.train()
 
-        for inputs, labels in dataloader:
-            inputs, labels = inputs.to(device), labels.to(device)
+        for x, y in dataloader:
+            x, y = x.to(device), y.to(device)
 
             # Forward pass
-            outputs = model(inputs)
-            loss = criterion(outputs, labels.float().view(-1, 1))
+            y_pred = model(x)
+            loss = criterion(y_pred, y)
 
             # Backward pass and optimization
             optimizer.zero_grad()
@@ -52,15 +51,13 @@ def train_model(model, dataloader, num_epochs=10, learning_rate=0.001):
             optimizer.step()
 
         # Print training statistics for each epoch
-        print(f"Epoch {epoch + 1}/{num_epochs}, Loss: {loss.item()}")
+        if verbose:
+            print(f"Epoch {epoch + 1}/{num_epochs}, Loss: {loss.item()}")
 
-    print("Training complete")
+    if verbose:
+        print("Training complete")
 
-# Example usage
-input_size = 10
 
-# Creating an instance of LogisticRegression
-logistic_model = LogisticRegression(input_size)
-
-# Assuming you have a dataloader for your binary classification dataset (not shown here)
-train_model(logistic_model, dataloader)
+def eval(model, dataloader):
+    pass
+    
